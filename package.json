@@ -1,0 +1,21 @@
+{
+  "name": "dcim-photo-organizer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ssh2-sftp-client": "^10.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "@types/ssh2-sftp-client": "^9.0.3",
+    "prettier": "^3.2.5",
+    "tsx": "^4.7.1"
+  }
+}
