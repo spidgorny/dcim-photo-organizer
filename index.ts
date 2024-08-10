@@ -1,24 +1,25 @@
-import Client from "ssh2-sftp-client";
-import { PhotoProcessor } from "./processor.js";
-import { Logger } from "./logger.js";
+import {PhotoProcessor} from "./processor.js";
+import {Logger} from "./logger.js";
+import {connectToPhone} from "./config.js";
+import {PhotoOrganizer} from "./organizer.js";
 
-let sftp = new Client();
-
-await sftp.connect({
-  host: "192.168.1.18",
-  port: "2222",
-  username: "slawa",
-  password: "francis",
-  timeout: 5_000,
-});
+let sftp = await connectToPhone();
 
 const logger = new Logger("photo-processor");
-const processor = new PhotoProcessor(
-  sftp,
-  logger,
-  "/DCIM/Camera",
-  "O:\\new\\2024\\slawa-nord\\",
+let DCIM_CAMERA = "/DCIM/Camera";
+let destinationPath = "/Users/depidsvy/Pictures/slawa-oneplus-nord";
+const organizer = new PhotoOrganizer(
+	sftp,
+	logger,
+	DCIM_CAMERA,
 );
-await processor.organizeFilesByMonth();
+await organizer.organizeFilesByMonth();
+
+const processor = new PhotoProcessor(
+	sftp,
+	logger,
+	DCIM_CAMERA,
+	destinationPath,
+);
 await processor.copyAllFoldersToDiskstation();
 await sftp.end();

@@ -17,51 +17,18 @@ export class PhotoProcessor {
     protected destinationPath: string,
   ) {}
 
-  async organizeFilesByMonth() {
-    let filesAndFolders = await this.sftp.list(this.sourcePath);
-    let folders = filesAndFolders.filter((x) => x.type === "d");
-    this.logger.table(folders, ["name", "type", "size"]);
-    let files = filesAndFolders
-      .filter((x) => x.type === "-")
-      .filter((x) => !x.name.startsWith("."));
-    files = files.map((x) => {
-      const match = /(20\d\d)(\d\d)/.exec(x.name);
-      if (!match) return x;
-      const moveTo = match[1] + "-" + match[2];
-      return {
-        ...x,
-        moveTo,
-      };
-    });
-    this.logger.table(files, ["name", "type", "size", "moveTo"]);
-    await this.move(files);
-  }
-
-  async move(files: MyFileInfo[]) {
-    const listDestinations = [...new Set(files.map((x) => x.moveTo))];
-    this.logger.table(listDestinations);
-    for (const folder of listDestinations) {
-      const destination = this.sourcePath + "/" + folder;
-      this.logger.log("mkdir", destination);
-      await this.sftp.mkdir(destination, true);
-    }
-    for (const file of files) {
-      if (!file.moveTo) continue;
-      const source = this.sourcePath + "/" + file.name;
-      const destination = this.sourcePath + "/" + file.moveTo;
-      this.logger.log(source, "=>", destination);
-      await this.sftp.rename(source, destination + "/" + file.name);
-    }
-  }
-
   async copyAllFoldersToDiskstation() {
     let filesAndFolders = await this.sftp.list(this.sourcePath);
     let folders = filesAndFolders.filter((x) => x.type === "d");
+    // copy only folders for the current year
     folders = folders.filter((x) =>
       x.name.startsWith(new Date().getFullYear().toString()),
     );
     this.logger.table(folders, ["name", "type", "size"]);
     for (const folder of folders) {
+      this.logger.log("== Starting ", folder);
+      let destinationSubfolder = path.join(this.destinationPath, folder.name);
+      fs.mkdirSync(destinationSubfolder, { recursive: true });
       await this.copyFolderToDiskstation(folder.name);
     }
   }
@@ -71,9 +38,14 @@ export class PhotoProcessor {
       this.sourcePath + "/" + folder,
     )) as MyFileInfo[];
     let files = filesAndFolders.filter((x) => x.type === "-");
+    // only files that don't already exist in the destination
     files = files.map((x) => {
       let destination = path.join(this.destinationPath, folder, x.name);
-      const exists = fs.existsSync(destination);
+      let exists = fs.existsSync(destination);
+      if (exists) {
+        let stat = fs.statSync(destination);
+        exists &&= stat.size === x.size;
+      }
       return {
         ...x,
         destination,
@@ -106,13 +78,17 @@ export class PhotoProcessor {
       this.logger.log(filePath, "=>", file.destination);
       await this.sftp.fastGet(filePath, file.destination, {
         step: (totalTransferred: number, chunk: number, total: number) => {
-          this.logger.log(
+          let width = 50;
+          let count = (totalTransferred / total) * width;
+          this.logger.replace(
             filePath,
-            ((total / totalTransferred) * 100).toFixed(3),
+            ((totalTransferred / total) * 100).toFixed(3),
             "%",
+            "[" + "=".repeat(count) + " ".repeat(width - count) + "]",
           );
         },
       });
+      console.log();
     }
   }
 }

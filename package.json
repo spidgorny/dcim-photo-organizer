@@ -10,12 +10,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "ssh2-sftp-client": "^10.0.3"
+    "jetty": "^0.1.1",
+    "ssh2-sftp-client": "^11.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20.11.30",
+    "@types/node": "^22.2.0",
     "@types/ssh2-sftp-client": "^9.0.3",
-    "prettier": "^3.2.5",
-    "tsx": "^4.7.1"
+    "prettier": "^3.3.3",
+    "tsx": "^4.17.0"
   }
 }

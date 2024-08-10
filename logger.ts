@@ -1,8 +1,13 @@
+import * as util from "node:util";
+import Jetty from 'jetty'
+
 export class Logger {
   startTime: number;
+  jetty: Jetty;
 
   constructor(protected prefix: string) {
     this.startTime = process.uptime() * 1000;
+    this.jetty = new Jetty(process.stdout);
   }
 
   get diff() {
@@ -25,5 +30,14 @@ export class Logger {
   table(...args: any[]) {
     console.log(`${this.dur}, [${this.prefix}]`);
     console.table(...args);
+  }
+
+  replace(...args: any[]) {
+    //this.log(...args);
+    process.stdout.cursorTo(0);
+    process.stdout.clearLine(0);
+    process.stdout.write(args.map(x => util.format(x)).join(' '));
+    // this.jetty.text(...args);
+    // this.jetty.moveTo([0,0]);
   }
 }
