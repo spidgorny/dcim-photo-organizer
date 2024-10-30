@@ -84,7 +84,9 @@ export class PhotoProcessor {
             filePath,
             ((totalTransferred / total) * 100).toFixed(3),
             "%",
-            "[" + "=".repeat(count) + " ".repeat(width - count) + "]",
+            "[" + "=".repeat(count) + ".".repeat(width - count) + "]",
+            file.size / 1024 / 1024,
+            "MB",
           );
         },
       });
